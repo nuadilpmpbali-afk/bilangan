@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lab Maya Interaktif Matematika: Bilangan Bulat - Fase C</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .app-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 177.78vh;
+            max-height: 56.25vw;
+            margin: auto;
+            position: absolute;
+            top: 0; bottom: 0; left: 0; right: 0;
+            display: flex;
+            flex-direction: column;
+            background: #0f172a;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+        }
+
+        .tab-btn.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        .car-sprite {
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.6s ease-in-out;
+        }
+
+        /* Certificate Print Styling */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #certificateModal, #certificateModal * {
+                visibility: visible;
+            }
+            #certificateModal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background: white !important;
+                color: black !important;
+                display: flex !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .cert-border {
+                border: 8px double #2563eb !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center bg-slate-950">
+
+    <div class="app-container rounded-none sm:rounded-2xl border border-slate-800">
+        
+        <!-- SPLASH SCREEN -->
+        <div id="splashScreen" class="absolute inset-0 z-50 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex flex-col items-center justify-center p-6 text-center">
+            <div class="mb-6 relative">
+                <div class="w-24 h-24 sm:w-32 sm:h-32 bg-blue-600/20 rounded-full flex items-center justify-center border-2 border-blue-400/50 animate-pulse">
+                    <span class="text-5xl sm:text-6xl">🚗</span>
+                </div>
+                <span class="absolute -bottom-2 -right-2 bg-amber-400 text-xs font-extrabold px-2 py-1 rounded-full text-slate-950">FASE C</span>
+            </div>
+            
+            <h1 class="text-2xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">
+                LAB MAYA INTERAKTIF <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-amber-300">BILANGAN BULAT</span>
+            </h1>
+            <p class="text-blue-300/80 text-xs sm:text-base max-w-md mb-8">
+                SDN 1 Takmung &bull; Matematika Kelas 5 - 6
+            </p>
+
+            <div id="loadingBox" class="w-64 mb-6">
+                <div class="flex justify-between text-xs text-blue-300 mb-1">
+                    <span>Memuat Modul Garis Bilangan...</span>
+                    <span id="loadPercent">0%</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                    <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-amber-400 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <button id="btnStart" onclick="startApp()" class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-lg px-8 py-3.5 rounded-xl shadow-lg shadow-blue-900/50 transform active:scale-95 transition-all flex items-center gap-3">
+                <i class="fa-solid fa-play"></i> Mulai Eksplorasi
+            </button>
+        </div>
+
+        <!-- HEADER & NAVBAR -->
+        <header class="bg-slate-950 border-b border-slate-800 px-4 py-2 flex items-center justify-between shrink-0 h-14 z-10">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center shadow">
+                    <i class="fa-solid fa-calculator text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm sm:text-base font-bold text-white leading-tight">Lab Maya Bilangan Bulat</h2>
+                    <p class="text-[10px] sm:text-xs text-blue-300 hidden sm:block">Matematika Fase C - SDN 1 Takmung</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs sm:text-sm">
+                <button onclick="switchTab('teori')" id="tab-teori" class="tab-btn active px-2.5 sm:px-4 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-book"></i> <span class="hidden md:inline">Teori</span>
+                </button>
+                <button onclick="switchTab('prosedur')" id="tab-prosedur" class="tab-btn text-slate-400 hover:text-white px-2.5 sm:px-4 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check"></i> <span class="hidden md:inline">Prosedur</span>
+                </button>
+                <button onclick="switchTab('simulasi')" id="tab-simulasi" class="tab-btn text-slate-400 hover:text-white px-2.5 sm:px-4 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-car"></i> <span class="hidden md:inline">Simulasi</span>
+                </button>
+                <button onclick="switchTab('lkpd')" id="tab-lkpd" class="tab-btn text-slate-400 hover:text-white px-2.5 sm:px-4 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-pen"></i> <span class="hidden md:inline">LKPD</span>
+                </button>
+                <button onclick="switchTab('pengembang')" id="tab-pengembang" class="tab-btn text-slate-400 hover:text-white px-2.5 sm:px-4 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-gear"></i> <span class="hidden md:inline">Pengembang</span>
+                </button>
+            </nav>
+
+            <button onclick="toggleAudio()" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all">
+                <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+            </button>
+        </header>
+
+        <!-- MAIN CONTENT CONTAINER -->
+        <main class="flex-1 relative overflow-hidden bg-slate-900">
+
+            <!-- TAB 1: TEORI -->
+            <section id="content-teori" class="tab-content absolute inset-0 p-4 sm:p-6 overflow-y-auto custom-scroll">
+                <div class="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+                    <div class="bg-gradient-to-r from-blue-900/40 to-slate-900 p-4 sm:p-5 rounded-2xl border border-blue-800/50">
+                        <h3 class="text-lg sm:text-xl font-bold text-blue-300 mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-lightbulb text-amber-400"></i> Konsep Dasar Bilangan Bulat
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                            Bilangan bulat terdiri dari <strong>bilangan positif</strong>, <strong>nol (0)</strong>, dan <strong>bilangan negatif</strong>. 
+                            Dalam simulasi ini, kita memodelkan pergerakan angka menggunakan lintasan <strong>Mobil Interaktif (🚗)</strong>.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm sm:text-base">
+                                <i class="fa-solid fa-arrow-right"></i> Bilangan Bulat Positif (+)
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-300">
+                                Bilangan yang bernilai lebih besar dari nol. Pada garis bilangan, mobil melaju atau melangkah ke arah **KANAN**.
+                            </p>
+                        </div>
+
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex items-center gap-2 text-rose-400 font-bold text-sm sm:text-base">
+                                <i class="fa-solid fa-arrow-left"></i> Bilangan Bulat Negatif (-)
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-300">
+                                Bilangan yang bernilai lebih kecil dari nol. Pada garis bilangan, mobil mundur atau bergerak ke arah **KIRI**.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800 space-y-3">
+                        <h4 class="text-sm sm:text-base font-bold text-amber-300">Aturan Pergerakan Mobil (🚗):</h4>
+                        <ul class="text-xs sm:text-sm text-slate-300 space-y-2 list-disc list-inside">
+                            <li><strong>Posisi Awal:</strong> Mobil selalu dimulai dari titik netral <strong>0 (Nol)</strong>.</li>
+                            <li><strong>Penjumlahan (+):</strong> Mobil maju searah nilai bilangan kedua.</li>
+                            <li><strong>Pengurangan (-):</strong> Mobil balik arah atau mundur berlawanan dengan nilai bilangan.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: PROSEDUR -->
+            <section id="content-prosedur" class="tab-content hidden absolute inset-0 p-4 sm:p-6 overflow-y-auto custom-scroll">
+                <div class="max-w-4xl mx-auto space-y-4">
+                    <h3 class="text-lg sm:text-xl font-bold text-blue-300 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ol text-blue-400"></i> Panduan Langkah Simulasi
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shrink-0">1</div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Tentukan Bilangan Pertama (A)</h4>
+                                <p class="text-xs text-slate-400 mt-1">Gunakan slider/input untuk menentukan posisi awal laju mobil dari titik nol.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shrink-0">2</div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Pilih Operasi Hitung</h4>
+                                <p class="text-xs text-slate-400 mt-1">Pilih tombol Tambah (+) atau Kurang (-) sesuai dengan soal yang diuji.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shrink-0">3</div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Tentukan Bilangan Kedua (B)</h4>
+                                <p class="text-xs text-slate-400 mt-1">Atur nilai bilangan kedua untuk melanjutkan laju lintasan mobil.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shrink-0">4</div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Jalankan Simulasi & Reset</h4>
+                                <p class="text-xs text-slate-400 mt-1">Tekan "Jalankan Mobil" untuk melihat animasi. Gunakan tombol "Reset" untuk mengulang.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: SIMULASI -->
+            <section id="content-simulasi" class="tab-content hidden absolute inset-0 p-3 sm:p-5 flex flex-col justify-between">
+                <!-- Top Controls Panel -->
+                <div class="bg-slate-950/90 p-3 sm:p-4 rounded-2xl border border-slate-800 shadow-xl space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <!-- Equation Display -->
+                        <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-center flex items-center gap-2 font-mono text-base sm:text-xl font-bold">
+                            <span id="displayA" class="text-blue-400">0</span>
+                            <span id="displayOp" class="text-amber-400">+</span>
+                            <span id="displayB" class="text-emerald-400">0</span>
+                            <span class="text-slate-400">=</span>
+                            <span id="displayResult" class="text-white bg-blue-600/30 px-2.5 py-0.5 rounded-lg border border-blue-500/50">0</span>
+                        </div>
+
+                        <!-- Presets / Quick Examples -->
+                        <div class="flex items-center gap-1.5 overflow-x-auto custom-scroll pb-1">
+                            <span class="text-[11px] text-slate-400 uppercase font-semibold mr-1 hidden sm:inline">Contoh:</span>
+                            <button onclick="setPreset(3, '+', 4)" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-xs rounded-lg border border-slate-700">3 + 4</button>
+                            <button onclick="setPreset(-2, '+', 5)" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-xs rounded-lg border border-slate-700">-2 + 5</button>
+                            <button onclick="setPreset(4, '-', 7)" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-xs rounded-lg border border-slate-700">4 - 7</button>
+                            <button onclick="setPreset(-3, '-', -4)" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-xs rounded-lg border border-slate-700">-3 - (-4)</button>
+                        </div>
+                    </div>
+
+                    <!-- Input Controls -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800/80">
+                        <!-- Bilangan A -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <label class="text-blue-300 font-semibold">Bilangan Pertama (A):</label>
+                                <span id="valA" class="font-bold text-blue-400">0</span>
+                            </div>
+                            <input type="range" id="inputA" min="-10" max="10" value="0" oninput="updateValues()" class="w-full accent-blue-500 cursor-pointer">
+                        </div>
+
+                        <!-- Operasi Hitung -->
+                        <div class="flex flex-col items-center">
+                            <label class="text-amber-300 font-semibold text-xs mb-1">Operasi Hitung:</label>
+                            <div class="flex gap-2">
+                                <button id="btnOpAdd" onclick="setOp('+')" class="px-4 py-1 bg-amber-500 text-slate-950 font-extrabold rounded-lg shadow border border-amber-400 text-sm">
+                                    + (Tambah)
+                                </button>
+                                <button id="btnOpSub" onclick="setOp('-')" class="px-4 py-1 bg-slate-800 text-slate-300 font-extrabold rounded-lg border border-slate-700 hover:bg-slate-700 text-sm">
+                                    - (Kurang)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bilangan B -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <label class="text-emerald-300 font-semibold">Bilangan Kedua (B):</label>
+                                <span id="valB" class="font-bold text-emerald-400">0</span>
+                            </div>
+                            <input type="range" id="inputB" min="-10" max="10" value="0" oninput="updateValues()" class="w-full accent-emerald-500 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Number Line Canvas Container -->
+                <div id="canvasContainer" class="my-auto bg-slate-950 p-4 sm:p-6 rounded-2xl border border-slate-800 shadow-inner relative min-h-[180px] sm:min-h-[220px] flex flex-col justify-end">
+                    
+                    <!-- Car Sprite Container -->
+                    <div id="carWrapper" class="absolute top-4 left-1/2 -translate-x-1/2 car-sprite z-20 flex flex-col items-center" style="left: 50%;">
+                        <div id="carBubble" class="bg-blue-600 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-md mb-1 whitespace-nowrap border border-blue-400">
+                            Posisi: 0
+                        </div>
+                        <div id="carIcon" class="text-4xl sm:text-5xl transform transition-transform duration-300">
+                            🚗
+                        </div>
+                    </div>
+
+                    <!-- Visual Number Line Track -->
+                    <div class="relative w-full h-12 flex items-center">
+                        <div class="absolute w-full h-2 bg-gradient-to-r from-rose-900 via-blue-900 to-emerald-900 rounded-full border border-slate-700"></div>
+                        <div id="numberLineTicks" class="w-full flex justify-between relative z-10">
+                            <!-- Ticks generated via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Controls Bottom -->
+                <div class="flex items-center justify-between gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <div id="feedbackText" class="text-xs sm:text-sm font-medium text-slate-300 truncate max-w-md">
+                        Siap menjalankan simulasi. Atur nilai A dan B!
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        <button onclick="resetSim()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold border border-slate-700 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                        <button onclick="runSimulation()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-blue-900/50 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-play"></i> Jalankan Mobil 🚗
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: LKPD -->
+            <section id="content-lkpd" class="tab-content hidden absolute inset-0 p-4 sm:p-6 overflow-y-auto custom-scroll">
+                <div class="max-w-3xl mx-auto bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-6">
+                    <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-blue-300">Lembar Kerja Peserta Didik (LKPD)</h3>
+                            <p class="text-xs text-slate-400">Jawab pertanyaan berikut untuk menguji pemahaman Anda!</p>
+                        </div>
+                        <span class="bg-blue-900/40 border border-blue-700 text-blue-300 text-xs font-extrabold px-3 py-1 rounded-full">Nilai Otomatis</span>
+                    </div>
+
+                    <!-- Soal 1 -->
+                    <div class="space-y-2">
+                        <p class="text-xs sm:text-sm font-bold text-slate-200">1. Mobil berada di titik 0, lalu melaju ke kanan sejauh 5 satuan (+5), kemudian melaju lagi ke kanan sejauh 3 satuan (+3). Di titik manakah mobil berada sekarang?</p>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <label class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 flex items-center gap-2 cursor-pointer hover:bg-slate-800">
+                                <input type="radio" name="q1" value="2" class="accent-blue-500"> 2
+                            </label>
+                            <label class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 flex items-center gap-2 cursor-pointer hover:bg-slate-800">
+                                <input type="radio" name="q1" value="8" class="accent-blue-500"> 8
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Soal 2 -->
+                    <div class="space-y-2">
+                        <p class="text-xs sm:text-sm font-bold text-slate-200">2. Hasil dari (-4) + 6 adalah...</p>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <label class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 flex items-center gap-2 cursor-pointer hover:bg-slate-800">
+                                <input type="radio" name="q2" value="2" class="accent-blue-500"> 2
+                            </label>
+                            <label class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 flex items-center gap-2 cursor-pointer hover:bg-slate-800">
+                                <input type="radio" name="q2" value="-10" class="accent-blue-500"> -10
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Soal 3 -->
+                    <div class="space-y-2">
+                        <p class="text-xs sm:text-sm font-bold text-slate-200">3. Sebuah mobil mundur ke kiri sejauh 3 satuan (-3) lalu bergerak mundur lagi ke kiri sejauh 2 satuan (-2). Operasi hitung yang sesuai adalah...</p>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <label class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 flex items-center gap-2 cursor-pointer hover:bg-slate-800">
+                                <input type="radio" name="q3" value="A" class="accent-blue-500"> (-3) + (-2) = -5
+                            </label>
+                            <label class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 flex items-center gap-2 cursor-pointer hover:bg-slate-800">
+                                <input type="radio" name="q3" value="B" class="accent-blue-500"> 3 - 2 = 1
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Student Name Input & Certificate Trigger -->
+                    <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <i class="fa-solid fa-user-graduate text-amber-400 text-lg"></i>
+                            <input type="text" id="studentNameInput" placeholder="Masukkan Nama Siswa..." class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-blue-100 focus:outline-none focus:border-blue-400 w-full sm:w-60">
+                        </div>
+                        
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <button onclick="checkQuiz()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-check-double"></i> Periksa Jawaban
+                            </button>
+                            <button id="btnDownloadCert" onclick="openCertificateModal()" class="hidden bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold px-4 py-2 rounded-xl text-xs shadow-lg transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-award"></i> Unduh Sertifikat
+                            </button>
+                        </div>
+                    </div>
+                    <div id="quizResult" class="font-bold text-amber-400 text-xs sm:text-sm text-right"></div>
+                </div>
+            </section>
+
+            <!-- CERTIFICATE MODAL OVERLAY -->
+            <div id="certificateModal" class="hidden absolute inset-0 z-50 bg-slate-950/95 flex items-center justify-center p-2 sm:p-4">
+                <div class="bg-slate-900 border-4 border-amber-400/80 rounded-2xl p-4 sm:p-6 w-full max-w-2xl text-center relative shadow-2xl flex flex-col justify-between cert-border">
+                    <div class="absolute top-2 left-2 text-amber-400 text-xl"><i class="fa-solid fa-star"></i></div>
+                    <div class="absolute top-2 right-2 text-amber-400 text-xl"><i class="fa-solid fa-star"></i></div>
+                    <div class="absolute bottom-2 left-2 text-amber-400 text-xl"><i class="fa-solid fa-star"></i></div>
+                    <div class="absolute bottom-2 right-2 text-amber-400 text-xl"><i class="fa-solid fa-star"></i></div>
+
+                    <button onclick="closeCertificateModal()" class="no-print absolute top-3 right-3 text-slate-400 hover:text-white bg-slate-950 p-2 rounded-full border border-slate-800 w-8 h-8 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+
+                    <div class="space-y-1">
+                        <p class="text-amber-400 font-bold text-xs uppercase tracking-widest">SDN 1 TAKMUNG &bull; MATEMATIKA FASE C</p>
+                        <h2 class="text-xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 uppercase tracking-wide">
+                            Sertifikat Hasil Belajar
+                        </h2>
+                        <p class="text-xs text-blue-200 italic">Diberikan sebagai penghargaan atas kelulusan materi:</p>
+                        <p class="text-sm sm:text-base font-bold text-blue-300">"Operasi Hitung Bilangan Bulat Garis Bilangan"</p>
+                    </div>
+
+                    <div class="my-4 py-3 border-y border-amber-500/30 bg-slate-950/60 rounded-xl space-y-2">
+                        <p class="text-xs text-blue-200">Diberikan Kepada:</p>
+                        <h3 id="certStudentName" class="text-lg sm:text-2xl font-black text-white underline decoration-amber-400 decoration-2 tracking-wider">
+                            - NAMA SISWA -
+                        </h3>
+                        <p class="text-xs text-blue-200">Telah menyelesaikan LKPD Interaktif dengan Nilai Sempurna:</p>
+                        <div class="inline-flex items-center gap-2 bg-amber-400/20 text-amber-300 font-extrabold text-sm sm:text-lg px-4 py-1 rounded-full border border-amber-400/50">
+                            <i class="fa-solid fa-trophy text-amber-400"></i> NILAI KELULUSAN: <span id="certScore">100</span> / 100
+                        </div>
+                    </div>
+
+                    <div class="flex items-end justify-between px-4 text-left text-[11px] sm:text-xs text-blue-200">
+                        <div>
+                            <p class="text-[10px] text-slate-400">Tanggal Selesai:</p>
+                            <p id="certDate" class="font-semibold text-blue-300">Takmung, -</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[10px] text-slate-400">Pengembang & Guru Matematika,</p>
+                            <div class="h-8 flex items-center justify-center font-serif text-amber-300 text-sm italic font-bold">
+                                Putu Ayu
+                            </div>
+                            <p class="font-bold text-white border-t border-slate-700 pt-0.5">Putu Ayu, S.Pd.</p>
+                        </div>
+                    </div>
+
+                    <div class="no-print mt-4 flex items-center justify-center gap-3">
+                        <button onclick="window.print()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs px-5 py-2 rounded-xl shadow-lg flex items-center gap-2 transition-all">
+                            <i class="fa-solid fa-print"></i> Cetak / Simpan PDF
+                        </button>
+                        <button onclick="closeCertificateModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs px-4 py-2 rounded-xl border border-slate-700">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: PENGEMBANG -->
+            <section id="content-pengembang" class="tab-content hidden absolute inset-0 p-4 sm:p-6 overflow-y-auto custom-scroll">
+                <div class="max-w-2xl mx-auto bg-slate-950 p-6 rounded-2xl border border-slate-800 text-center space-y-4 shadow-xl">
+                    <div class="w-20 h-20 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-full mx-auto p-1 shadow-lg">
+                        <div class="w-full h-full bg-slate-900 rounded-full flex items-center justify-center text-3xl">
+                            👩‍🏫
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Putu Ayu</h3>
+                        <p class="text-sm text-blue-400 font-medium">Guru Matematika</p>
+                        <p class="text-xs text-slate-400 mt-1">SDN 1 Takmung</p>
+                    </div>
+
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800 pt-4">
+                        Lab Maya Interaktif ini dikembangkan sebagai media pembelajaran kontekstual dan intuitif untuk membantu siswa SD (Fase C) memahami konsep matematika abstrak, seperti operasi bilangan bulat, secara menyenangkan dan visual.
+                    </p>
+
+                    <div class="inline-flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800 text-xs text-blue-300">
+                        <i class="fa-solid fa-code text-amber-400"></i> Standalone & Responsive Web Application
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        /* Web Audio Synth for Standalone Car Sound Effects */
+        let audioCtx = null;
+        let isAudioMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (isAudioMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'drive') {
+                    // Car engine rev sound effect
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.exponentialRampToValueAtTime(320, now + 0.3);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.5);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'win') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.setValueAtTime(150, now + 0.1);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch (e) {
+                console.log('Audio not supported or blocked');
+            }
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = document.getElementById('soundIcon');
+            if (isAudioMuted) {
+                icon.className = 'fa-solid fa-volume-xmark text-red-400';
+            } else {
+                icon.className = 'fa-solid fa-volume-high';
+                playSound('click');
+            }
+        }
+
+        /* Splash Screen Loading Progress */
+        window.onload = function() {
+            let progress = 0;
+            const progressBar = document.getElementById('progressBar');
+            const loadPercent = document.getElementById('loadPercent');
+            const btnStart = document.getElementById('btnStart');
+            const loadingBox = document.getElementById('loadingBox');
+
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 25) + 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loadingBox.classList.add('hidden');
+                        btnStart.classList.remove('hidden');
+                    }, 200);
+                }
+                progressBar.style.width = progress + '%';
+                loadPercent.innerText = progress + '%';
+            }, 100);
+
+            generateNumberLine();
+            updateValues();
+        };
+
+        function startApp() {
+            playSound('win');
+            document.getElementById('splashScreen').style.display = 'none';
+        }
+
+        function switchTab(tabId) {
+            playSound('click');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'text-white');
+                btn.classList.add('text-slate-400');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            const activeContent = document.getElementById(`content-${tabId}`);
+            if (activeContent) {
+                activeContent.classList.remove('hidden');
+            }
+        }
+
+        /* Simulation State */
+        let currentOp = '+';
+        const minVal = -10;
+        const maxVal = 10;
+
+        function generateNumberLine() {
+            const container = document.getElementById('numberLineTicks');
+            container.innerHTML = '';
+            for (let i = minVal; i <= maxVal; i++) {
+                const tick = document.createElement('div');
+                tick.className = 'flex flex-col items-center relative';
+                
+                const isZero = i === 0;
+                tick.innerHTML = `
+                    <div class="w-0.5 ${isZero ? 'h-6 bg-amber-400 -mt-2' : 'h-3 bg-slate-600'}"></div>
+                    <span class="text-[10px] sm:text-xs font-mono font-bold ${isZero ? 'text-amber-400 text-sm' : 'text-slate-400'}">${i}</span>
+                `;
+                container.appendChild(tick);
+            }
+        }
+
+        function setOp(op) {
+            playSound('click');
+            currentOp = op;
+            const btnAdd = document.getElementById('btnOpAdd');
+            const btnSub = document.getElementById('btnOpSub');
+
+            if (op === '+') {
+                btnAdd.className = "px-4 py-1 bg-amber-500 text-slate-950 font-extrabold rounded-lg shadow border border-amber-400 text-sm";
+                btnSub.className = "px-4 py-1 bg-slate-800 text-slate-300 font-extrabold rounded-lg border border-slate-700 hover:bg-slate-700 text-sm";
+            } else {
+                btnSub.className = "px-4 py-1 bg-amber-500 text-slate-950 font-extrabold rounded-lg shadow border border-amber-400 text-sm";
+                btnAdd.className = "px-4 py-1 bg-slate-800 text-slate-300 font-extrabold rounded-lg border border-slate-700 hover:bg-slate-700 text-sm";
+            }
+            updateValues();
+        }
+
+        function updateValues() {
+            const valA = parseInt(document.getElementById('inputA').value);
+            const valB = parseInt(document.getElementById('inputB').value);
+
+            document.getElementById('valA').innerText = valA;
+            document.getElementById('valB').innerText = valB;
+            document.getElementById('displayA').innerText = valA;
+            document.getElementById('displayOp').innerText = currentOp;
+            document.getElementById('displayB').innerText = valB < 0 ? `(${valB})` : valB;
+
+            let result = 0;
+            if (currentOp === '+') {
+                result = valA + valB;
+            } else {
+                result = valA - valB;
+            }
+            document.getElementById('displayResult').innerText = result;
+        }
+
+        function setPreset(a, op, b) {
+            playSound('click');
+            document.getElementById('inputA').value = a;
+            document.getElementById('inputB').value = b;
+            setOp(op);
+            updateValues();
+            runSimulation();
+        }
+
+        function positionToPercent(val) {
+            const clamped = Math.max(minVal, Math.min(maxVal, val));
+            return ((clamped - minVal) / (maxVal - minVal)) * 100;
+        }
+
+        function moveCarTo(val, isFacingLeft = false) {
+            const pct = positionToPercent(val);
+            const wrapper = document.getElementById('carWrapper');
+            const carIcon = document.getElementById('carIcon');
+            const carBubble = document.getElementById('carBubble');
+
+            wrapper.style.left = pct + '%';
+            carBubble.innerText = `Posisi: ${val}`;
+
+            if (isFacingLeft) {
+                carIcon.style.transform = 'scaleX(-1)';
+            } else {
+                carIcon.style.transform = 'scaleX(1)';
+            }
+        }
+
+        function runSimulation() {
+            playSound('drive');
+            const valA = parseInt(document.getElementById('inputA').value);
+            const valB = parseInt(document.getElementById('inputB').value);
+            const feedback = document.getElementById('feedbackText');
+
+            let finalPos = currentOp === '+' ? valA + valB : valA - valB;
+
+            if (finalPos < minVal || finalPos > maxVal) {
+                playSound('error');
+                feedback.innerText = `⚠️ Hasil (${finalPos}) di luar batas garis bilangan (-10 hingga 10).`;
+                return;
+            }
+
+            feedback.innerText = `🚗 Step 1: Mobil melaju dari 0 ke titik awal (${valA})...`;
+            moveCarTo(valA, valA < 0);
+
+            setTimeout(() => {
+                playSound('drive');
+                let stepDirection = currentOp === '+' ? valB : -valB;
+                feedback.innerText = `🚗 Step 2: Melanjutkan laju lintasan ke titik akhir (${finalPos})...`;
+                moveCarTo(finalPos, stepDirection < 0);
+
+                setTimeout(() => {
+                    playSound('win');
+                    feedback.innerText = `🎉 Selesai! Posisi akhir mobil berada di titik ${finalPos}.`;
+                }, 700);
+
+            }, 800);
+        }
+
+        function resetSim() {
+            playSound('click');
+            document.getElementById('inputA').value = 0;
+            document.getElementById('inputB').value = 0;
+            setOp('+');
+            updateValues();
+            moveCarTo(0, false);
+            document.getElementById('feedbackText').innerText = 'Simulasi direset. Silakan jalankan kembali!';
+        }
+
+        /* LKPD & Certificate Functions */
+        function checkQuiz() {
+            playSound('click');
+            const q1 = document.querySelector('input[name="q1"]:checked');
+            const q2 = document.querySelector('input[name="q2"]:checked');
+            const q3 = document.querySelector('input[name="q3"]:checked');
+            const resultDiv = document.getElementById('quizResult');
+            const btnCert = document.getElementById('btnDownloadCert');
+
+            if (!q1 || !q2 || !q3) {
+                resultDiv.className = "text-amber-400 text-xs sm:text-sm";
+                resultDiv.innerText = "Mohon jawab semua pertanyaan terlebih dahulu!";
+                btnCert.classList.add('hidden');
+                return;
+            }
+
+            let score = 0;
+            if (q1.value === "8") score += 33;
+            if (q2.value === "2") score += 33;
+            if (q3.value === "A") score += 34;
+
+            if (score >= 90) {
+                playSound('win');
+                resultDiv.className = "text-emerald-400 text-xs sm:text-sm font-bold";
+                resultDiv.innerText = `Sempurna! Nilai Kamu: 100 🎯`;
+                btnCert.classList.remove('hidden');
+            } else {
+                playSound('error');
+                resultDiv.className = "text-amber-400 text-xs sm:text-sm font-bold";
+                resultDiv.innerText = `Nilai Kamu: ${score}/100. Coba periksa lagi!`;
+                btnCert.classList.add('hidden');
+            }
+        }
+
+        function openCertificateModal() {
+            playSound('win');
+            const nameInput = document.getElementById('studentNameInput').value.trim();
+            const studentName = nameInput || "Siswa SDN 1 Takmung";
+            
+            document.getElementById('certStudentName').innerText = studentName.toUpperCase();
+            
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = today.toLocaleDateString('id-ID', options);
+            document.getElementById('certDate').innerText = `Takmung, ${formattedDate}`;
+
+            document.getElementById('certificateModal').classList.remove('hidden');
+        }
+
+        function closeCertificateModal() {
+            playSound('click');
+            document.getElementById('certificateModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
